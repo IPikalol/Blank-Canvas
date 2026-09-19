@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Local Business Helper</title>
+    
+    <!-- We use the ethers.js library to connect our website to the blockchain -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+        input, textarea, button { width: 100%; margin-top: 10px; padding: 10px; box-sizing: border-box; }
+        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #45a049; }
+        #status { margin-top: 20px; font-weight: bold; color: #0056b3; }
+        .section { background: #f9f9f9; padding: 15px; margin-top: 15px; border-radius: 8px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+
+    <h1>Local Business Helper</h1>
+    <p>Generate an ad and save it permanently to the BOT Chain Testnet.</p>
+
+    <!-- Step 1: Connect Wallet Section -->
+    <div class="section">
+        <button id="connectWalletBtn">1. Connect MetaMask</button>
+        <p id="walletAddress">Not connected</p>
+    </div>
+
+    <!-- Step 2: Input fields for the business -->
+    <div class="section">
+        <label><b>Business Details</b></label>
+        <input type="text" id="bizName" placeholder="Business Name (e.g., Bob's Cafe)">
+        <textarea id="aiText" rows="4" placeholder="Generated Ad Text (e.g., 50% off all coffees this Friday!)"></textarea>
+        
+        <button id="saveAdBtn">2. Save to Blockchain</button>
+    </div>
+    
+    <!-- Status updates for the user -->
+    <p id="status"></p>
+
+    <script>
+        // --- 1. THE SETUP ---
+        // REPLACE THIS STRING WITH THE REAL ADDRESS YOU COPIED FROM REMIX
+        const contractAddress = "0x22508C441FD1c9B87d4BeAc12174ddF45eF1ceAD";
+        
+        // This is the ABI (Application Binary Interface). 
+        // It tells our website exactly what functions exist in our Solidity code.
+        const contractABI = [
+            "function saveBusinessAd(bytes32 adId, string memory businessName, string memory generatedText) public",
+            "function viewBusinessAd(bytes32 adId) public view returns (string memory, string memory)"
+        ];
+
+        let provider;
+        let signer;
+        let contract;
+
+        // --- 2. CONNECTING METAMASK ---
+        document.getElementById("connectWalletBtn").addEventListener("click", async () => {
+            // Check if MetaMask is actually installed in the browser
+            if (window.ethereum) {
+                try {
+                    // Ask MetaMask for permission to connect to the site
+                    await window.ethereum.request({ method: "eth_requestAccounts" });
+                    
+                    // Set up ethers.js to talk to MetaMask
+                    provider = new ethers.BrowserProvider(window.ethereum);
+                    signer = await provider.getSigner();
+                    
+                    // Connect our specific smart contract to the signer
+                    contract = new ethers.Contract(contractAddress, contractABI, signer);
+                    
+                    // Show the connected wallet address on the screen
+                    document.getElementById("walletAddress").innerText = "Connected: " + await signer.getAddress();
+                    document.getElementById("status").innerText = "Wallet connected successfully!";
+                } catch (error) {
+                    document.getElementById("status").innerText = "Connection failed. Check console for details.";
+                    console.error(error);
+                }
+            } else {
+                alert("Please install the MetaMask extension in your browser!");
+            }
+        });
+
+        // --- 3. SAVING DATA TO THE BLOCKCHAIN ---
+        document.getElementById("saveAdBtn").addEventListener("click", async () => {
+            // Stop the function if the wallet is not connected yet
+            if (!contract) {
+                alert("Please connect your wallet first!");
+                return;
+            }
+
+            // Grab the text the user typed into the input boxes
+            const name = document.getElementById("bizName").value;
+            const text = document.getElementById("aiText").value;
+            
+            // We need a unique ID for this ad. Ethers easily generates a random 32-byte hash using the current time.
+            const uniqueId = ethers.id(Date.now().toString()); 
+
+            try {
+                document.getElementById("status").innerText = "Waiting for MetaMask approval...";
+                
+                // Call the 'saveBusinessAd' function exactly as it was written in the smart contract
+                const transaction = await contract.saveBusinessAd(uniqueId, name, text);
+                
+                document.getElementById("status").innerText = "Sending to blockchain... please wait for confirmation.";
+                
+                // Wait for the blockchain network to officially record the block
+                await transaction.wait();
+                
+                document.getElementById("status").innerText = "Success! Ad saved permanently to the blockchain.";
+            } catch (error) {
+                console.error(error);
+                document.getElementById("status").innerText = "Error saving ad. Did you reject the transaction?";
+            }
+        });
+    </script>
+</body>
+</html>
