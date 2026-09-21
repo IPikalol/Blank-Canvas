@@ -40,6 +40,17 @@
     <!-- Status updates for the user -->
     <p id="status"></p>
 
+    <!-- Step 3: View saved data from the blockchain -->
+    <div class="section">
+        <label><b>View Saved Canvas</b></label>
+        <p style="font-size: 12px; color: gray;">(After saving, copy the ID provided above and paste it here)</p>
+        <input type="text" id="searchId" placeholder="Paste your unique Ad ID here">
+        <button id="viewAdBtn">3. Load from Blockchain</button>
+        
+        <!-- This is where the blockchain data will appear -->
+        <div id="displayResult" style="margin-top: 15px; font-style: italic; color: #333;"></div>
+    </div>
+
     <script>
         // --- 1. THE SETUP ---
         // REPLACE THIS STRING WITH THE REAL ADDRESS YOU COPIED FROM REMIX
@@ -109,12 +120,38 @@
                 // Wait for the blockchain network to officially record the block
                 await transaction.wait();
                 
-                document.getElementById("status").innerText = "Success! Ad saved permanently to the blockchain.";
+                document.getElementById("status").innerText = "Success! Saved permanently. Your ID is: " + uniqueId;
             } catch (error) {
                 console.error(error);
                 document.getElementById("status").innerText = "Error saving ad. Did you reject the transaction?";
             }
         });
+
+        // --- 4. READING DATA FROM THE BLOCKCHAIN ---
+        document.getElementById("viewAdBtn").addEventListener("click", async () => {
+            if (!contract) {
+                alert("Please connect your wallet first!");
+                return;
+            }
+
+            const idToSearch = document.getElementById("searchId").value;
+            
+            try {
+                document.getElementById("displayResult").innerText = "Loading from blockchain...";
+                
+                // Call the 'viewBusinessAd' function from your smart contract
+                const result = await contract.viewBusinessAd(idToSearch);
+                
+                // result[0] is the Business Name, result[1] is the Ad Text
+                document.getElementById("displayResult").innerHTML = 
+                    "<b>Business:</b> " + result[0] + "<br><br><b>Canvas Text:</b> " + result[1];
+                    
+            } catch (error) {
+                console.error(error);
+                document.getElementById("displayResult").innerText = "Error loading data. Are you sure that ID exists?";
+            }
+        });
+        
     </script>
 </body>
 </html>
