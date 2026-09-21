@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blank Canvas</title>
     
-    <!-- We use the ethers.js library to connect our website to the blockchain -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
     
     <style>
@@ -13,19 +12,19 @@
         input, textarea, button { width: 100%; margin-top: 10px; padding: 10px; box-sizing: border-box; }
         button { background-color: #4CAF50; color: white; border: none; cursor: pointer; font-weight: bold; }
         button:hover { background-color: #45a049; }
-        #status { margin-top: 20px; font-weight: bold; color: #0056b3; }
+        #status { margin-top: 20px; font-weight: bold; color: #0056b3; word-wrap: break-word; }
         .section { background: #f9f9f9; padding: 15px; margin-top: 15px; border-radius: 8px; border: 1px solid #ddd; }
-
+        
         /* --- BLANK CANVAS POSTER STYLES --- */
         #flyerCanvas {
             display: none; /* Hidden until a user loads it */
             width: 100%;
-            max-width: 400px;
-            margin: 20px auto;
+            margin-top: 20px;
             padding: 30px;
-            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); /* Cool gradient background */
+            box-sizing: border-box;
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
             border-radius: 12px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2); /* 3D Drop shadow */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
             text-align: center;
             color: #222;
         }
@@ -40,12 +39,11 @@
         #flyerText {
             font-size: 20px;
             font-style: italic;
-            background: rgba(255, 255, 255, 0.7); /* Semi-transparent white box */
+            background: rgba(255, 255, 255, 0.7);
             padding: 20px;
             border-radius: 8px;
             line-height: 1.4;
         }
-
     </style>
 </head>
 <body>
@@ -68,7 +66,6 @@
         <button id="saveAdBtn">2. Save to Blockchain</button>
     </div>
     
-    <!-- Status updates for the user -->
     <p id="status"></p>
 
     <!-- Step 3: View saved data from the blockchain -->
@@ -77,8 +74,7 @@
         <p style="font-size: 12px; color: gray;">(After saving, copy the ID provided above and paste it here)</p>
         <input type="text" id="searchId" placeholder="Paste your unique Ad ID here">
         <button id="viewAdBtn">3. Load from Blockchain</button>
-
-        <!-- This is where the blockchain data will appear -->
+        
         <div id="displayResult" style="margin-top: 15px; font-weight: bold; color: #333;"></div>
         
         <!-- The Visual Poster Generator -->
@@ -90,11 +86,9 @@
 
     <script>
         // --- 1. THE SETUP ---
-        // REPLACE THIS STRING WITH THE REAL ADDRESS YOU COPIED FROM REMIX
+        // IMPORTANT: PASTE YOUR REMIX SMART CONTRACT ADDRESS HERE AGAIN
         const contractAddress = "0x22508C441FD1c9B87d4BeAc12174ddF45eF1ceAD";
         
-        // This is the ABI (Application Binary Interface). 
-        // It tells our website exactly what functions exist in our Solidity code.
         const contractABI = [
             "function saveBusinessAd(bytes32 adId, string memory businessName, string memory generatedText) public",
             "function viewBusinessAd(bytes32 adId) public view returns (string memory, string memory)"
@@ -106,57 +100,39 @@
 
         // --- 2. CONNECTING METAMASK ---
         document.getElementById("connectWalletBtn").addEventListener("click", async () => {
-            // Check if MetaMask is actually installed in the browser
             if (window.ethereum) {
                 try {
-                    // Ask MetaMask for permission to connect to the site
                     await window.ethereum.request({ method: "eth_requestAccounts" });
-                    
-                    // Set up ethers.js to talk to MetaMask
                     provider = new ethers.BrowserProvider(window.ethereum);
                     signer = await provider.getSigner();
-                    
-                    // Connect our specific smart contract to the signer
                     contract = new ethers.Contract(contractAddress, contractABI, signer);
-                    
-                    // Show the connected wallet address on the screen
                     document.getElementById("walletAddress").innerText = "Connected: " + await signer.getAddress();
-                    document.getElementById("status").innerText = "Wallet connected successfully!";
                 } catch (error) {
-                    document.getElementById("status").innerText = "Connection failed. Check console for details.";
                     console.error(error);
                 }
             } else {
-                alert("Please install the MetaMask extension in your browser!");
+                alert("Please install MetaMask!");
             }
         });
 
         // --- 3. SAVING DATA TO THE BLOCKCHAIN ---
         document.getElementById("saveAdBtn").addEventListener("click", async () => {
-            // Stop the function if the wallet is not connected yet
             if (!contract) {
                 alert("Please connect your wallet first!");
                 return;
             }
 
-            // Grab the text the user typed into the input boxes
             const name = document.getElementById("bizName").value;
             const text = document.getElementById("aiText").value;
-            
-            // We need a unique ID for this ad. Ethers easily generates a random 32-byte hash using the current time.
             const uniqueId = ethers.id(Date.now().toString()); 
 
             try {
                 document.getElementById("status").innerText = "Waiting for MetaMask approval...";
-                
-                // Call the 'saveBusinessAd' function exactly as it was written in the smart contract
                 const transaction = await contract.saveBusinessAd(uniqueId, name, text);
-                
                 document.getElementById("status").innerText = "Sending to blockchain... please wait for confirmation.";
-                
-                // Wait for the blockchain network to officially record the block
                 await transaction.wait();
                 
+                // Show the ID to copy
                 document.getElementById("status").innerText = "Success! Saved permanently. Your ID is: " + uniqueId;
             } catch (error) {
                 console.error(error);
@@ -176,26 +152,22 @@
             try {
                 document.getElementById("displayResult").innerText = "Loading from blockchain...";
                 
-                // Call the 'viewBusinessAd' function from your smart contract
                 const result = await contract.viewBusinessAd(idToSearch);
                 
-                // result[0] is the Business Name, result[1] is the Ad Text
-                // 1. Show the success message
+                // Update text and unhide the visual poster box
                 document.getElementById("displayResult").innerText = "Poster successfully generated from the blockchain!";
-                
-                // 2. Unhide the visual poster box
                 document.getElementById("flyerCanvas").style.display = "block";
                 
-                // 3. Inject the blockchain text into the poster's HTML
+                // Inject the blockchain data into the poster
                 document.getElementById("flyerTitle").innerText = result[0];
                 document.getElementById("flyerText").innerText = result[1];
                     
             } catch (error) {
                 console.error(error);
                 document.getElementById("displayResult").innerText = "Error loading data. Are you sure that ID exists?";
+                document.getElementById("flyerCanvas").style.display = "none";
             }
         });
-        
     </script>
 </body>
 </html>
