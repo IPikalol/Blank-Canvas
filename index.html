@@ -9,40 +9,35 @@
     
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
-        input, textarea, button { width: 100%; margin-top: 10px; padding: 10px; box-sizing: border-box; }
+        input, textarea, select, button { width: 100%; margin-top: 10px; padding: 10px; box-sizing: border-box; }
         button { background-color: #4CAF50; color: white; border: none; cursor: pointer; font-weight: bold; }
         button:hover { background-color: #45a049; }
         #status { margin-top: 20px; font-weight: bold; color: #0056b3; word-wrap: break-word; }
         .section { background: #f9f9f9; padding: 15px; margin-top: 15px; border-radius: 8px; border: 1px solid #ddd; }
         
-        /* --- BLANK CANVAS POSTER STYLES --- */
+        /* Default Poster Styles - Will be overwritten by Javascript */
         #flyerCanvas {
-            display: none; /* Hidden until a user loads it */
+            display: none; 
             width: 100%;
             margin-top: 20px;
-            padding: 30px;
+            padding: 40px 20px;
             box-sizing: border-box;
-            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
             border-radius: 12px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
             text-align: center;
-            color: #222;
         }
         #flyerTitle {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 900;
             margin-bottom: 15px;
             text-transform: uppercase;
             letter-spacing: 2px;
-            font-family: 'Arial Black', sans-serif;
         }
         #flyerText {
             font-size: 20px;
-            font-style: italic;
-            background: rgba(255, 255, 255, 0.7);
             padding: 20px;
             border-radius: 8px;
-            line-height: 1.4;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -51,33 +46,39 @@
     <h1>Blank Canvas</h1>
     <p>Turn your blank canvas into a permanent blockchain masterpiece.</p>
 
-    <!-- Step 1: Connect Wallet Section -->
+    <!-- Step 1: Connect Wallet -->
     <div class="section">
         <button id="connectWalletBtn">1. Connect MetaMask</button>
         <p id="walletAddress">Not connected</p>
     </div>
 
-    <!-- Step 2: Input fields for the business -->
+    <!-- Step 2: Input fields -->
     <div class="section">
-        <label><b>Business Details</b></label>
+        <label><b>Canvas Details</b></label>
         <input type="text" id="bizName" placeholder="Business Name (e.g., Bob's Cafe)">
-        <textarea id="aiText" rows="4" placeholder="Generated Ad Text (e.g., 50% off all coffees this Friday!)"></textarea>
+        <textarea id="aiText" rows="4" placeholder="Ad Text (e.g., 50% off all coffees this Friday!)"></textarea>
+        
+        <!-- NEW: The Theme Selector -->
+        <select id="themeSelect">
+            <option value="Cyberpunk">Cyberpunk (Neon & Dark)</option>
+            <option value="Vintage">Vintage (Sepia & Classic)</option>
+            <option value="Minimalist">Minimalist (Clean & Modern)</option>
+        </select>
         
         <button id="saveAdBtn">2. Save to Blockchain</button>
     </div>
     
     <p id="status"></p>
 
-    <!-- Step 3: View saved data from the blockchain -->
+    <!-- Step 3: View saved data -->
     <div class="section">
         <label><b>View Saved Canvas</b></label>
-        <p style="font-size: 12px; color: gray;">(After saving, copy the ID provided above and paste it here)</p>
+        <p style="font-size: 12px; color: gray;">(Paste your unique ID here to generate the poster)</p>
         <input type="text" id="searchId" placeholder="Paste your unique Ad ID here">
         <button id="viewAdBtn">3. Load from Blockchain</button>
         
         <div id="displayResult" style="margin-top: 15px; font-weight: bold; color: #333;"></div>
         
-        <!-- The Visual Poster Generator -->
         <div id="flyerCanvas">
             <div id="flyerTitle">Business Name</div>
             <div id="flyerText">Generated Ad Text...</div>
@@ -85,20 +86,19 @@
     </div>
 
     <script>
-        // --- 1. THE SETUP ---
-        // IMPORTANT: PASTE YOUR REMIX SMART CONTRACT ADDRESS HERE AGAIN
-        const contractAddress = "0x22508C441FD1c9B87d4BeAc12174ddF45eF1ceAD";
+        // PASTE YOUR NEW REMIX ADDRESS HERE
+        const contractAddress = "0x3D1B70fc6977C1Fd22BCbb52B19e4f0076F49DE7";
         
+        // NEW ABI: Notice the extra 'string memory theme' parameters added
         const contractABI = [
-            "function saveBusinessAd(bytes32 adId, string memory businessName, string memory generatedText) public",
-            "function viewBusinessAd(bytes32 adId) public view returns (string memory, string memory)"
+            "function saveBusinessAd(bytes32 adId, string memory businessName, string memory generatedText, string memory theme) public",
+            "function viewBusinessAd(bytes32 adId) public view returns (string memory, string memory, string memory)"
         ];
 
         let provider;
         let signer;
         let contract;
 
-        // --- 2. CONNECTING METAMASK ---
         document.getElementById("connectWalletBtn").addEventListener("click", async () => {
             if (window.ethereum) {
                 try {
@@ -115,7 +115,6 @@
             }
         });
 
-        // --- 3. SAVING DATA TO THE BLOCKCHAIN ---
         document.getElementById("saveAdBtn").addEventListener("click", async () => {
             if (!contract) {
                 alert("Please connect your wallet first!");
@@ -124,23 +123,23 @@
 
             const name = document.getElementById("bizName").value;
             const text = document.getElementById("aiText").value;
+            const theme = document.getElementById("themeSelect").value; // Grab the dropdown choice
             const uniqueId = ethers.id(Date.now().toString()); 
 
             try {
                 document.getElementById("status").innerText = "Waiting for MetaMask approval...";
-                const transaction = await contract.saveBusinessAd(uniqueId, name, text);
-                document.getElementById("status").innerText = "Sending to blockchain... please wait for confirmation.";
+                // Pass the theme variable to the smart contract
+                const transaction = await contract.saveBusinessAd(uniqueId, name, text, theme);
+                document.getElementById("status").innerText = "Sending to blockchain... please wait.";
                 await transaction.wait();
                 
-                // Show the ID to copy
                 document.getElementById("status").innerText = "Success! Saved permanently. Your ID is: " + uniqueId;
             } catch (error) {
                 console.error(error);
-                document.getElementById("status").innerText = "Error saving ad. Did you reject the transaction?";
+                document.getElementById("status").innerText = "Error saving. Did you reject the transaction?";
             }
         });
 
-        // --- 4. READING DATA FROM THE BLOCKCHAIN ---
         document.getElementById("viewAdBtn").addEventListener("click", async () => {
             if (!contract) {
                 alert("Please connect your wallet first!");
@@ -150,17 +149,38 @@
             const idToSearch = document.getElementById("searchId").value;
             
             try {
-                document.getElementById("displayResult").innerText = "Loading from blockchain...";
+                document.getElementById("displayResult").innerText = "Generating custom poster from blockchain...";
                 
                 const result = await contract.viewBusinessAd(idToSearch);
                 
-                // Update text and unhide the visual poster box
-                document.getElementById("displayResult").innerText = "Poster successfully generated from the blockchain!";
-                document.getElementById("flyerCanvas").style.display = "block";
+                // result[0] is Name, result[1] is Text, result[2] is Theme
+                document.getElementById("displayResult").innerText = "Theme applied: " + result[2];
                 
-                // Inject the blockchain data into the poster
+                // Inject the text
                 document.getElementById("flyerTitle").innerText = result[0];
                 document.getElementById("flyerText").innerText = result[1];
+                
+                // Apply visual styling based on the blockchain data
+                let flyer = document.getElementById("flyerCanvas");
+                flyer.style.display = "block";
+                
+                if (result[2] === "Cyberpunk") {
+                    flyer.style.background = "linear-gradient(135deg, #0f0c29, #302b63, #24243e)";
+                    flyer.style.color = "#00ffcc";
+                    flyer.style.fontFamily = "'Courier New', Courier, monospace";
+                    document.getElementById("flyerText").style.background = "rgba(0, 0, 0, 0.5)";
+                } else if (result[2] === "Vintage") {
+                    flyer.style.background = "linear-gradient(135deg, #e3dac9, #c4a484)";
+                    flyer.style.color = "#3b2f2f";
+                    flyer.style.fontFamily = "Georgia, serif";
+                    document.getElementById("flyerText").style.background = "rgba(255, 255, 255, 0.4)";
+                } else { // Minimalist
+                    flyer.style.background = "linear-gradient(135deg, #ffffff, #f0f0f0)";
+                    flyer.style.color = "#333333";
+                    flyer.style.fontFamily = "Arial, sans-serif";
+                    document.getElementById("flyerText").style.background = "rgba(0, 0, 0, 0.05)";
+                    flyer.style.border = "1px solid #ccc";
+                }
                     
             } catch (error) {
                 console.error(error);
