@@ -8,14 +8,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
     
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+        /* UPDATED: Removed max-width from body so the banner can stretch across the screen */
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; }
+        
+        /* NEW: Container for the app to keep your buttons and boxes neatly centered below the banner */
+        .app-container { max-width: 600px; margin: 20px auto; padding: 0 20px; }
+
         input, textarea, select, button { width: 100%; margin-top: 10px; padding: 10px; box-sizing: border-box; }
         button { background-color: #4CAF50; color: white; border: none; cursor: pointer; font-weight: bold; }
         button:hover { background-color: #45a049; }
         #status { margin-top: 20px; font-weight: bold; color: #0056b3; word-wrap: break-word; }
-        .section { background: #f9f9f9; padding: 15px; margin-top: 15px; border-radius: 8px; border: 1px solid #ddd; }
+        .section { background: #ffffff; padding: 15px; margin-top: 15px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         
-        /* Default Poster Styles - Will be overwritten by Javascript */
+        /* Default Poster Styles */
         #flyerCanvas {
             display: none; 
             width: 100%;
@@ -39,67 +44,116 @@
             border-radius: 8px;
             line-height: 1.5;
         }
+
+        /* --- NEW: Main Header Banner Styles --- */
+        .main-header-banner {
+            width: 100%;
+            background-color: #2c3e50; 
+            background-image: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 40px 0; 
+            color: #ecf0f1; 
+            border-bottom: 4px solid #2196F3; 
+        }
+        .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .content-wrapper h2 {
+            font-size: 36px;
+            letter-spacing: 2px;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+        }
+        .content-wrapper p {
+            font-size: 16px;
+            margin: 0 0 30px 0;
+            opacity: 0.8;
+        }
+        .logo-row {
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 40px; 
+        }
+        .bot-logo, .user-logo {
+            width: 160px; 
+            height: auto;
+            border-radius: 10px; 
+            background-color: white; /* Adds a white background in case your logo is transparent */
+            padding: 5px;
+        }
     </style>
 </head>
 <body>
 
-    <img src="bot-logo.png" alt="BOT Chain Logo" style="width: 200px; display: block; margin: 0 auto 20px auto;">
-    <h1>Blank Canvas</h1>
-    <p>Turn your blank canvas into a permanent blockchain masterpiece.</p>
-
-    <!-- Step 1: Connect Wallet -->
-    <div class="section">
-        <button id="connectWalletBtn">1. Connect MetaMask</button>
-        <p id="walletAddress">Not connected</p>
-    </div>
-
-    <!-- Step 2: Input fields -->
-    <div class="section">
-        <label><b>Canvas Details</b></label>
-        <input type="text" id="bizName" placeholder="Business Name (e.g., Bob's Cafe)">
-        <textarea id="aiText" rows="4" placeholder="Ad Text (e.g., 50% off all coffees this Friday!)"></textarea>
-        
-        <!-- NEW: The Theme Selector -->
-        <select id="themeSelect">
-            <option value="Cyberpunk">Cyberpunk (Neon & Dark)</option>
-            <option value="Vintage">Vintage (Sepia & Classic)</option>
-            <option value="Minimalist">Minimalist (Clean & Modern)</option>
-        </select>
-        
-        <button id="saveAdBtn">2. Save to Blockchain</button>
-    </div>
-    
-    <p id="status"></p>
-
-    <!-- Step 3: View saved data -->
-    <div class="section">
-        <label><b>View Saved Canvas</b></label>
-        <p style="font-size: 12px; color: gray;">(Paste your unique ID here to generate the poster)</p>
-        <input type="text" id="searchId" placeholder="Paste your unique Ad ID here">
-        <button id="viewAdBtn">3. Load from Blockchain</button>
-        
-        <div id="displayResult" style="margin-top: 15px; font-weight: bold; color: #333;"></div>
-        
-        <div id="flyerCanvas">
-            <div id="flyerTitle">Business Name</div>
-            <div id="flyerText">Generated Ad Text...</div>
+    <!-- NEW: Full-Width Header Banner -->
+    <div class="main-header-banner">
+        <div class="content-wrapper">
+            <h2>Blank Canvas</h2>
+            <p>Turn your blank canvas into a permanent blockchain masterpiece.</p>
+            <div class="logo-row">
+                <img src="bot-logo.png" alt="BOT Chain Logo" class="bot-logo">
+                <img src="my-logo.png" alt="My Custom Logo" class="user-logo">
+            </div>
         </div>
     </div>
 
-    <!-- Final Requirement: Mainnet Explorer Link -->
-    <div class="section" style="text-align: center; background-color: #eef2f3;">
-        <p><b>Transparency Check</b></p>
-        <p style="font-size: 14px;">Verify this smart contract directly on the blockchain:</p>
-        <a id="explorerLink" href="https://scan.botchain.ai/address/0x22508C441FD1c9B87d4BeAc12174ddF45eF1ceAD" target="_blank" style="text-decoration: none;">
-            <button style="background-color: #2196F3; width: auto; padding: 10px 20px; border-radius: 5px;">🔍 View on BOT Explorer</button>
-        </a>
-    </div>
+    <!-- NEW: Wrapper to keep the app interface centered and sized correctly -->
+    <div class="app-container">
+        
+        <!-- Step 1: Connect Wallet -->
+        <div class="section">
+            <button id="connectWalletBtn">1. Connect MetaMask</button>
+            <p id="walletAddress">Not connected</p>
+        </div>
+
+        <!-- Step 2: Input fields -->
+        <div class="section">
+            <label><b>Canvas Details</b></label>
+            <input type="text" id="bizName" placeholder="Business Name (e.g., Bob's Cafe)">
+            <textarea id="aiText" rows="4" placeholder="Ad Text (e.g., 50% off all coffees this Friday!)"></textarea>
+            
+            <select id="themeSelect">
+                <option value="Cyberpunk">Cyberpunk (Neon & Dark)</option>
+                <option value="Vintage">Vintage (Sepia & Classic)</option>
+                <option value="Minimalist">Minimalist (Clean & Modern)</option>
+            </select>
+            
+            <button id="saveAdBtn">2. Save to Blockchain</button>
+        </div>
+        
+        <p id="status"></p>
+
+        <!-- Step 3: View saved data -->
+        <div class="section">
+            <label><b>View Saved Canvas</b></label>
+            <p style="font-size: 12px; color: gray;">(Paste your unique ID here to generate the poster)</p>
+            <input type="text" id="searchId" placeholder="Paste your unique Ad ID here">
+            <button id="viewAdBtn">3. Load from Blockchain</button>
+            
+            <div id="displayResult" style="margin-top: 15px; font-weight: bold; color: #333;"></div>
+            
+            <div id="flyerCanvas">
+                <div id="flyerTitle">Business Name</div>
+                <div id="flyerText">Generated Ad Text...</div>
+            </div>
+        </div>
+
+        <!-- Final Requirement: Mainnet Explorer Link -->
+        <div class="section" style="text-align: center; background-color: #eef2f3;">
+            <p><b>Transparency Check</b></p>
+            <p style="font-size: 14px;">Verify this smart contract directly on the blockchain:</p>
+            <a id="explorerLink" href="https://scan.botchain.ai/address/0x22508C441FD1c9B87d4BeAc12174ddF45eF1ceAD" target="_blank" style="text-decoration: none;">
+                <button style="background-color: #2196F3; width: auto; padding: 10px 20px; border-radius: 5px;">🔍 View on BOT Explorer</button>
+            </a>
+        </div>
+        
+    </div> <!-- End of app-container -->
 
     <script>
-        // PASTE YOUR NEW REMIX ADDRESS HERE
         const contractAddress = "0x22508C441FD1c9B87d4BeAc12174ddF45eF1ceAD";
         
-        // NEW ABI: Notice the extra 'string memory theme' parameters added
         const contractABI = [
             "function saveBusinessAd(bytes32 adId, string memory businessName, string memory generatedText, string memory theme) public",
             "function viewBusinessAd(bytes32 adId) public view returns (string memory, string memory, string memory)"
@@ -133,12 +187,11 @@
 
             const name = document.getElementById("bizName").value;
             const text = document.getElementById("aiText").value;
-            const theme = document.getElementById("themeSelect").value; // Grab the dropdown choice
+            const theme = document.getElementById("themeSelect").value; 
             const uniqueId = ethers.id(Date.now().toString()); 
 
             try {
                 document.getElementById("status").innerText = "Waiting for MetaMask approval...";
-                // Pass the theme variable to the smart contract
                 const transaction = await contract.saveBusinessAd(uniqueId, name, text, theme);
                 document.getElementById("status").innerText = "Sending to blockchain... please wait.";
                 await transaction.wait();
@@ -163,14 +216,11 @@
                 
                 const result = await contract.viewBusinessAd(idToSearch);
                 
-                // result[0] is Name, result[1] is Text, result[2] is Theme
                 document.getElementById("displayResult").innerText = "Theme applied: " + result[2];
                 
-                // Inject the text
                 document.getElementById("flyerTitle").innerText = result[0];
                 document.getElementById("flyerText").innerText = result[1];
                 
-                // Apply visual styling based on the blockchain data
                 let flyer = document.getElementById("flyerCanvas");
                 flyer.style.display = "block";
                 
