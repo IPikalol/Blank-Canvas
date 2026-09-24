@@ -8,10 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
     
     <style>
-        /* UPDATED: Removed max-width from body so the banner can stretch across the screen */
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; }
         
-        /* NEW: Container for the app to keep your buttons and boxes neatly centered below the banner */
         .app-container { max-width: 600px; margin: 20px auto; padding: 0 20px; }
 
         input, textarea, select, button { width: 100%; margin-top: 10px; padding: 10px; box-sizing: border-box; }
@@ -20,7 +18,7 @@
         #status { margin-top: 20px; font-weight: bold; color: #0056b3; word-wrap: break-word; }
         .section { background: #ffffff; padding: 15px; margin-top: 15px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         
-        /* Default Poster Styles */
+        /* Poster Canvas Styles */
         #flyerCanvas {
             display: none; 
             width: 100%;
@@ -45,53 +43,72 @@
             line-height: 1.5;
         }
 
-        /* --- NEW: Main Header Banner Styles --- */
+        /* Header Banner & Logo Styles */
         .main-header-banner {
             width: 100%;
             background-color: #2c3e50; 
             background-image: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            padding: 40px 0; 
+            padding: 30px 20px; 
+            box-sizing: border-box;
             color: #ecf0f1; 
             border-bottom: 4px solid #2196F3; 
         }
         .content-wrapper {
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
             text-align: center;
         }
+        
+        /* Banner Graphic Style */
+        .banner-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+        }
+
         .content-wrapper h2 {
-            font-size: 36px;
+            font-size: 32px;
             letter-spacing: 2px;
             margin: 0 0 10px 0;
             text-transform: uppercase;
         }
         .content-wrapper p {
             font-size: 16px;
-            margin: 0 0 30px 0;
-            opacity: 0.8;
+            margin: 0 0 25px 0;
+            opacity: 0.85;
         }
+        
+        /* Side-by-Side Logo Alignment */
         .logo-row {
             display: flex; 
             justify-content: center; 
             align-items: center; 
-            gap: 40px; 
+            gap: 30px; 
         }
         .bot-logo, .user-logo {
-            width: 160px; 
+            width: 140px; 
             height: auto;
             border-radius: 10px; 
-            background-color: white; /* Adds a white background in case your logo is transparent */
+            background-color: white; 
             padding: 5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
     </style>
 </head>
 <body>
 
-    <!-- NEW: Full-Width Header Banner -->
+    <!-- Header Banner Section -->
     <div class="main-header-banner">
         <div class="content-wrapper">
+            <!-- Your Graphic Banner Image -->
+            <img src="banner-bg.jpg" alt="Blank Canvas Banner" class="banner-img">
+
             <h2>Blank Canvas</h2>
             <p>Turn your blank canvas into a permanent blockchain masterpiece.</p>
+            
+            <!-- Side-by-Side Logos -->
             <div class="logo-row">
                 <img src="bot-logo.png" alt="BOT Chain Logo" class="bot-logo">
                 <img src="my-logo.png" alt="My Custom Logo" class="user-logo">
@@ -99,7 +116,7 @@
         </div>
     </div>
 
-    <!-- NEW: Wrapper to keep the app interface centered and sized correctly -->
+    <!-- App Interface Container -->
     <div class="app-container">
         
         <!-- Step 1: Connect Wallet -->
@@ -140,7 +157,7 @@
             </div>
         </div>
 
-        <!-- Final Requirement: Mainnet Explorer Link -->
+        <!-- Mainnet Explorer Transparency Link -->
         <div class="section" style="text-align: center; background-color: #eef2f3;">
             <p><b>Transparency Check</b></p>
             <p style="font-size: 14px;">Verify this smart contract directly on the blockchain:</p>
@@ -149,7 +166,7 @@
             </a>
         </div>
         
-    </div> <!-- End of app-container -->
+    </div>
 
     <script>
         const contractAddress = "0x22508C441FD1c9B87d4BeAc12174ddF45eF1ceAD";
